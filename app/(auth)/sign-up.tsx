@@ -3,6 +3,7 @@ import { View, Text, Alert } from "react-native";
 import { Link, router } from "expo-router";
 import CustomInput from "@/components/CustomInput";
 import CustomButton from "@/components/CustomButton";
+import { createUser } from "@/lib/appwrite";
 
 const SignUp = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -13,18 +14,27 @@ const SignUp = () => {
     });
 
     const submit = async () => {
-        if (!form.name || !form.email || !form.password) {
-            return Alert.alert("Error", "Please fill in all fields correctly");
+        const { name, email, password } = form;
+
+        if (!name || !email || !password) {
+            Alert.alert("Error", "Please fill in all fields correctly.");
+            return;
         }
 
-        setIsSubmitting(true);
+        if (isSubmitting) return; // 🧠 Prevent double-submit taps
 
+        setIsSubmitting(true);
         try {
-            // TODO: Replace this mock success with real sign-up logic (API call)
-            Alert.alert("Success", "User signed up successfully");
-            router.replace("/");
-        } catch (e) {
-            Alert.alert("Error", "Something went wrong");
+            await createUser({ name, email, password });
+
+            Alert.alert("Success", "Account created successfully!");
+            router.replace("/sign-in"); // Redirect to home (or another page)
+        } catch (error: any) {
+            console.error("Signup error:", error);
+            Alert.alert(
+                "Sign Up Failed",
+                error?.message || "An unexpected error occurred. Please try again."
+            );
         } finally {
             setIsSubmitting(false);
         }
@@ -36,12 +46,7 @@ const SignUp = () => {
                 label="Full Name"
                 placeholder="Enter your full name"
                 value={form.name}
-                onChangeText={(text) =>
-                    setForm((prev) => ({
-                        ...prev,
-                        name: text,
-                    }))
-                }
+                onChangeText={(text) => setForm((prev) => ({ ...prev, name: text }))}
             />
 
             <CustomInput
@@ -49,12 +54,7 @@ const SignUp = () => {
                 placeholder="Enter your email"
                 keyboardType="email-address"
                 value={form.email}
-                onChangeText={(text) =>
-                    setForm((prev) => ({
-                        ...prev,
-                        email: text,
-                    }))
-                }
+                onChangeText={(text) => setForm((prev) => ({ ...prev, email: text }))}
             />
 
             <CustomInput
@@ -62,19 +62,10 @@ const SignUp = () => {
                 placeholder="Enter your password"
                 secureTextEntry
                 value={form.password}
-                onChangeText={(text) =>
-                    setForm((prev) => ({
-                        ...prev,
-                        password: text,
-                    }))
-                }
+                onChangeText={(text) => setForm((prev) => ({ ...prev, password: text }))}
             />
 
-            <CustomButton
-                title="Sign Up"
-                isLoading={isSubmitting}
-                onPress={submit}
-            />
+            <CustomButton title="Sign Up" isLoading={isSubmitting} onPress={submit} />
 
             <View className="flex-row justify-center items-center mt-5 gap-2">
                 <Text className="text-gray-500">Already have an account?</Text>

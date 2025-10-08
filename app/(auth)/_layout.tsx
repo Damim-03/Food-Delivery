@@ -8,12 +8,18 @@ import {
     ImageBackground,
     Image
 } from "react-native";
-import { Slot } from "expo-router";
+import {Redirect, Slot} from "expo-router";
 import CustomButton from "../../components/CustomButton"
 import CustomInput from "../../components/CustomInput"
-import { images } from "@/constants"; // make sure you import images
+import { images } from "@/constants";
+import useAuthStore from "@/store/auth.store"; // make sure you import images
 
 export default function _Layout() {
+
+    const { isAuthenticated } = useAuthStore();
+
+    if (isAuthenticated) { return <Redirect href="/" />; }
+
     return (
         <KeyboardAvoidingView
             style={{ flex: 1 }}
