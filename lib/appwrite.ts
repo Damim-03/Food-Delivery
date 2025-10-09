@@ -1,5 +1,5 @@
-import {Account, Avatars, Client, Databases, ID, Query} from "react-native-appwrite";
-import {CreateUserPrams, SignInParams} from "@/type";
+import {Account, Avatars, Client, Databases, ID, Query, Storage } from "react-native-appwrite";
+import {CreateUserPrams, GetMenuParams, SignInParams} from "@/type";
 import {data} from "browserslist";
 
 
@@ -8,7 +8,12 @@ export const appwriteConfig = {
     projectId: process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID!,
     platform: "com.dami.foodordering",
     databaseId: "68e2f594001dce753ea5",
-    userCollectionId: "user"
+    bucketId: "68e6ef2d002f3a3d07f6",
+    userCollectionId: "user",
+    categoriesCollectionId: "categories",
+    menuCollectionId: "menu",
+    customizationsCollectionId: "customizations",
+    menuCustomizationsCollectionId: "menu_customizations",
 }
 
 export const client = new Client();
@@ -20,6 +25,7 @@ client
 
 export const account = new Account(client);
 export const databases = new Databases(client);
+export const storage = new Storage(client)
 const avatars = new Avatars(client);
 
 export const createUser = async ({ email, password, name }: CreateUserPrams) => {
@@ -71,5 +77,37 @@ export const getCurrentUser = async () => {
     } catch (e) {
         console.log(e)
         throw new Error(e as string)
+    }
+}
+
+export const getMenu = async ({ category, query }: GetMenuParams) => {
+    try {
+        const queries: string[] = [];
+
+        if(category) queries.push(Query.equal('categories', category));
+        if(query) queries.push(Query.search('name', query));
+
+        const menus = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.menuCollectionId,
+            queries,
+        )
+
+        return menus.documents;
+    } catch (e) {
+        throw new Error(e as string);
+    }
+}
+
+export const getCategories = async () => {
+    try {
+        const categories = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.categoriesCollectionId,
+        )
+
+        return categories.documents;
+    } catch (e) {
+        throw new Error(e as string);
     }
 }
